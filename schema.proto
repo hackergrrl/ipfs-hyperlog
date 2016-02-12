@@ -7,6 +7,7 @@ message Node {
   optional bytes signature = 8;
   required bytes value     = 5;
   repeated string links    = 6;
+  optional bytes ipfsobject= 9;
 }
 
 message Entry {

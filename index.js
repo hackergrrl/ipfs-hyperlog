@@ -1,3 +1,4 @@
+var async = require('async')
 var after = require('after-all')
 var lexint = require('lexicographic-integer')
 var collect = require('stream-collector')
@@ -12,8 +13,9 @@ var util = require('util')
 var enumerate = require('level-enumerate')
 var replicate = require('./lib/replicate')
 var messages = require('./lib/messages')
-var hash = require('./lib/hash')
 var encoder = require('./lib/encode')
+var base58 = require('bs58')
+var merkledag = require('ipfs-merkle-dag')
 
 var ID = '!!id'
 var CHANGES = '!changes!'
@@ -122,97 +124,123 @@ var add = function (dag, links, value, opts, cb) {
   for (var i = 0; i < links.length; i++) {
     if (typeof links[i] !== 'string') links[i] = links[i].key
   }
-  var node = {
-    log: id,
-    key: hash(links, value),
-    identity: opts.identity || null,
-    signature: opts.signature || null,
-    value: value,
-    links: links
-  }
-  dag.emit('preadd', node)
 
-  var next = after(function (err) {
-    if (err) return cb(err)
+  // look up all nodes to create dag links
+  async.map(links, dag.get.bind(dag), onLinksReady)
 
-    var onlocked = function (release) {
-      dag.logs.head(id, function (err, seq) {
-        if (err) return release(cb, err)
+  function onLinksReady (err, hyperLinks) {
+    if (err) {
+      cb(err)
+      return
+    }
 
-        node.change = dag.changes + 1
-        node.seq = seq + 1
+    // make a DAGLink to a hyperlog node
+    function makeAnonLink (hyperNode) {
+      var tmp = new merkledag.DAGNode('', [])
+      var node = tmp.unMarshal(hyperNode.ipfsobject)
+      var size = node.size()
+      var mh = node.multihash()
+      return new merkledag.DAGLink('', size, mh)
+    }
 
-        if (opts.hash && node.key !== opts.hash) return release(cb, CHECKSUM_MISMATCH)
-        if (opts.seq && node.seq !== opts.seq) return release(cb, INVALID_LOG)
+    var dagLinks = hyperLinks.map(makeAnonLink)
 
-        var log = {
-          change: dag.changes + 1,
-          node: node.key,
-          links: logLinks
-        }
+    // create the merkle dag node that links to the daglinks
+    var mnode = new merkledag.DAGNode(value, dagLinks)
 
-        var onclone = function (clone) {
-          if (!opts.log) return release(cb, null, clone)
-          dag.db.put(dag.logs.key(node.log, node.seq), messages.Entry.encode(log), function (err) {
-            if (err) return release(cb, err)
-            release(cb, null, clone)
-          })
-        }
+    var node = {
+      log: id,
+      key: base58.encode(mnode.multihash()),
+      identity: opts.identity || null,
+      signature: opts.signature || null,
+      ipfsobject: mnode.marshal(),  // store the binary ipfs object as well
+      value: value,
+      links: links
+    }
+    dag.emit('preadd', node)
 
-        dag.get(node.key, { valueEncoding: 'binary' }, function (_, clone) {
-          if (clone) return onclone(clone)
+    var next = after(function (err) {
+      if (err) return cb(err)
 
-          var batch = []
-          for (var i = 0; i < links.length; i++) batch.push({type: 'del', key: HEADS + links[i]})
-          batch.push({type: 'put', key: CHANGES + lexint.pack(node.change, 'hex'), value: node.key})
-          batch.push({type: 'put', key: NODES + node.key, value: messages.Node.encode(node)})
-          batch.push({type: 'put', key: HEADS + node.key, value: node.key})
-          batch.push({type: 'put', key: dag.logs.key(node.log, node.seq), value: messages.Entry.encode(log)})
+      var onlocked = function (release) {
+        dag.logs.head(id, function (err, seq) {
+          if (err) return release(cb, err)
 
-          dag.db.batch(batch, function (err) {
-            if (err) return release(cb, err)
-            dag.changes = node.change
-            dag.emit('add', node)
-            release(cb, null, node)
+          node.change = dag.changes + 1
+          node.seq = seq + 1
+
+          if (opts.hash && node.key !== opts.hash) return release(cb, CHECKSUM_MISMATCH)
+          if (opts.seq && node.seq !== opts.seq) return release(cb, INVALID_LOG)
+
+          var log = {
+            change: dag.changes + 1,
+            node: node.key,
+            links: logLinks
+          }
+
+          var onclone = function (clone) {
+            if (!opts.log) return release(cb, null, clone)
+            dag.db.put(dag.logs.key(node.log, node.seq), messages.Entry.encode(log), function (err) {
+              if (err) return release(cb, err)
+              release(cb, null, clone)
+            })
+          }
+
+          dag.get(node.key, { valueEncoding: 'binary' }, function (_, clone) {
+            if (clone) return onclone(clone)
+
+            var batch = []
+            for (var i = 0; i < links.length; i++) batch.push({type: 'del', key: HEADS + links[i]})
+            batch.push({type: 'put', key: CHANGES + lexint.pack(node.change, 'hex'), value: node.key})
+            batch.push({type: 'put', key: NODES + node.key, value: messages.Node.encode(node)})
+            batch.push({type: 'put', key: HEADS + node.key, value: node.key})
+            batch.push({type: 'put', key: dag.logs.key(node.log, node.seq), value: messages.Entry.encode(log)})
+
+            dag.db.batch(batch, function (err) {
+              if (err) return release(cb, err)
+              dag.changes = node.change
+              dag.emit('add', node)
+              release(cb, null, node)
+            })
           })
         })
-      })
-    }
+      }
 
-    var done = function () {
-      if (opts.release) return onlocked(opts.release)
-      dag.lock(onlocked)
-    }
+      var done = function () {
+        if (opts.release) return onlocked(opts.release)
+        dag.lock(onlocked)
+      }
 
-    if (node.log === dag.id) { // we own this node
-      if (!dag.sign || node.signature) return done()
-      dag.sign(node, function (err, sig) {
+      if (node.log === dag.id) { // we own this node
+        if (!dag.sign || node.signature) return done()
+        dag.sign(node, function (err, sig) {
+          if (err) return cb(err)
+          node.identity = dag.identity
+          node.signature = sig
+          done()
+        })
+      } else {
+        if (!dag.verify) return done()
+        dag.verify(node, function (err, valid) {
+          if (err) return cb(err)
+          if (!valid) return cb(INVALID_SIGNATURE)
+          done()
+        })
+      }
+    })
+
+    var nextLink = function () {
+      var cb = next()
+      return function (err, link) {
         if (err) return cb(err)
-        node.identity = dag.identity
-        node.signature = sig
-        done()
-      })
-    } else {
-      if (!dag.verify) return done()
-      dag.verify(node, function (err, valid) {
-        if (err) return cb(err)
-        if (!valid) return cb(INVALID_SIGNATURE)
-        done()
-      })
+        if (link.log !== id && logLinks.indexOf(link.log) === -1) logLinks.push(link.log)
+        cb(null)
+      }
     }
-  })
 
-  var nextLink = function () {
-    var cb = next()
-    return function (err, link) {
-      if (err) return cb(err)
-      if (link.log !== id && logLinks.indexOf(link.log) === -1) logLinks.push(link.log)
-      cb(null)
+    for (i = 0; i < links.length; i++) {
+      dag.get(links[i], nextLink())
     }
-  }
-
-  for (i = 0; i < links.length; i++) {
-    dag.get(links[i], nextLink())
   }
 }
 
