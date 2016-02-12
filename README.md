@@ -11,10 +11,32 @@ npm install ipfs-hyperlog
 ## background
 
 `ipfs-hyperlog` is a drop-in replacement for
-[`hyperlog`](https://github.com/mafintosh/hyperlog). Its key difference from
-`hyperlog` is that it creates a Merkle DAG that is *binary compatible* with IPFS
-objects. This means any node of any DAG built using ipfs-hyperlog can be
-replicated to and from the IPFS network as well!
+[`hyperlog`](https://github.com/mafintosh/hyperlog). Its key difference is that
+it creates a Merkle DAG that is *binary compatible* with IPFS objects. This
+means any node of any DAG built using ipfs-hyperlog can be replicated to and
+from the IPFS network as well!
+
+### why ipfs?
+
+The peer-to-peer IPFS network excels at serving and replicating immutable,
+highly available, permanent data.
+
+Hyperlog DAGs can now be replicated to IPFS for permanent storage!
+
+### why hyperlog?
+
+Hyperlog is great for quick replication over a transport-agnostic stream!
+
+In addition, it has a great ecosystem of powerful modules that IPFS can now take
+advantage of:
+
+1. [hyperlog-index](https://github.com/substack/hyperlog-index) - forking
+   indexes for hyperlog
+2. [hyperkv](https://github.com/substack/hyperkv) - p2p key/value store over a
+   hyperlogusing a multi-value register conflict strategy
+3. [swarmlog](https://github.com/substack/swarmlog) - create a p2p webrtc swarm
+   around a hyperlog
+4. and [many more!](https://www.npmjs.com/search?q=hyperlog)
 
 
 ## Create and link nodes
