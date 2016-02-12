@@ -11,6 +11,7 @@ npm install ipfs-hyperlog
 ## Background
 
 `ipfs-hyperlog` is a drop-in replacement for
+[@mafintosh](https://github.com/mafintosh)'s
 [`hyperlog`](https://github.com/mafintosh/hyperlog). Its key difference is that
 it creates a Merkle DAG that is *binary compatible* with IPFS objects. This
 means any node of any DAG built using ipfs-hyperlog can be replicated to and
