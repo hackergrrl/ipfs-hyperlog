@@ -1,5 +1,5 @@
 {
-  "name": "hyperlog",
+  "name": "ipfs-hyperlog",
   "version": "4.7.0",
   "description": "Merkle DAG that replicates based on scuttlebutt logs and causal linking",
   "main": "index.js",
@@ -40,12 +40,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mafintosh/hyperlog.git"
+    "url": "https://github.com/noffle/ipfs-hyperlog.git"
   },
-  "author": "Mathias Buus (@mafintosh)",
+  "author": "Stephen Whitmore (@noffle)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mafintosh/hyperlog/issues"
+    "url": "https://github.com/noffle/ipfs-hyperlog/issues"
   },
-  "homepage": "https://github.com/mafintosh/hyperlog"
+  "homepage": "https://github.com/noffle/ipfs-hyperlog"
 }
