@@ -14,8 +14,7 @@ var enumerate = require('level-enumerate')
 var replicate = require('./lib/replicate')
 var messages = require('./lib/messages')
 var encoder = require('./lib/encode')
-var base58 = require('bs58')
-var merkledag = require('ipfs-merkle-dag')
+var merkledag = require('ipfs-dag')
 
 var ID = '!!id'
 var CHANGES = '!changes!'
@@ -136,24 +135,23 @@ var add = function (dag, links, value, opts, cb) {
 
     // make a DAGLink to a hyperlog node
     function makeAnonLink (hyperNode) {
-      var tmp = new merkledag.DAGNode('', [])
-      var node = tmp.unMarshal(hyperNode.ipfsobject)
-      var size = node.size()
-      var mh = node.multihash()
-      return new merkledag.DAGLink('', size, mh)
+      var node = merkledag.fromProtobuf(hyperNode.ipfsobject)
+      var size = node.size
+      var mh = node.multihash
+      return node.asLink('', size, mh)
     }
 
     var dagLinks = hyperLinks.map(makeAnonLink)
 
     // create the merkle dag node that links to the daglinks
-    var mnode = new merkledag.DAGNode(value, dagLinks)
+    var mnode = new merkledag.Node(value, dagLinks)
 
     var node = {
       log: id,
-      key: base58.encode(mnode.multihash()),
+      key: mnode.multihash,
       identity: opts.identity || null,
       signature: opts.signature || null,
-      ipfsobject: mnode.marshal(),  // store the binary ipfs object as well
+      ipfsobject: mnode.encoded,  // store the binary ipfs object as well
       value: value,
       links: links
     }
