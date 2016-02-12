@@ -1,16 +1,26 @@
-# hyperlog
+# ipfs-hyperlog
 
-[Merkle DAG](https://github.com/jbenet/random-ideas/issues/20) that replicates based on scuttlebutt logs and causal linking
+> [IPFS](https://ipfs.io)-compatible [Merkle DAG](https://github.com/jbenet/random-ideas/issues/20) that replicates based on scuttlebutt logs and causal linking
 
 ```
-npm install hyperlog
+npm install ipfs-hyperlog
 ```
 
-[![build status](http://img.shields.io/travis/mafintosh/hyperlog.svg?style=flat)](http://travis-ci.org/mafintosh/hyperlog)
-![dat](http://img.shields.io/badge/Development%20sponsored%20by-dat-green.svg?style=flat)
+[![build status](http://img.shields.io/travis/noffle/ipfs-hyperlog.svg?style=flat)](http://travis-ci.org/noffle/ipfs-hyperlog)
+
+## background
+
+`ipfs-hyperlog` is a drop-in replacement for
+[`hyperlog`](https://github.com/mafintosh/hyperlog). Its key difference from
+`hyperlog` is that it creates a Merkle DAG that is *binary compatible* with IPFS
+objects. This means any node of any DAG built using ipfs-hyperlog can be
+replicated to and from the IPFS network as well!
+
+
+## Create and link nodes
 
 ``` js
-var hyperlog = require('hyperlog')
+var hyperlog = require('ipfs-hyperlog')
 
 var log = hyperlog(db) // where db is a levelup instance
 
