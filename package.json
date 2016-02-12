@@ -1,6 +1,6 @@
 {
   "name": "ipfs-hyperlog",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Merkle DAG that replicates based on scuttlebutt logs and causal linking",
   "main": "index.js",
   "dependencies": {
