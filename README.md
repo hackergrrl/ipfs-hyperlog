@@ -8,7 +8,7 @@ npm install ipfs-hyperlog
 
 [![build status](http://img.shields.io/travis/noffle/ipfs-hyperlog.svg?style=flat)](http://travis-ci.org/noffle/ipfs-hyperlog)
 
-## background
+## Background
 
 `ipfs-hyperlog` is a drop-in replacement for
 [`hyperlog`](https://github.com/mafintosh/hyperlog). Its key difference is that
@@ -16,14 +16,14 @@ it creates a Merkle DAG that is *binary compatible* with IPFS objects. This
 means any node of any DAG built using ipfs-hyperlog can be replicated to and
 from the IPFS network as well!
 
-### why ipfs?
+### Why IPFS?
 
 The peer-to-peer IPFS network excels at serving and replicating immutable,
 highly available, permanent data.
 
 Hyperlog DAGs can now be replicated to IPFS for permanent storage!
 
-### why hyperlog?
+### Why hyperlog?
 
 Hyperlog is great for quick replication over a transport-agnostic stream!
 
