@@ -1,5 +1,5 @@
 var async = require('async')
-var hyperlog = require('../Forks/hyperlog/index')
+var hyperlog = require('hyperlog')
 var merkledag = require('ipfs-dag')
 var defined = require('defined')
 
