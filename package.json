@@ -6,7 +6,7 @@
   "dependencies": {
     "async": "^1.5.2",
     "defined": "^1.0.0",
-    "hyperlog": "^4.7.1",
+    "hyperlog": "^4.8.0",
     "ipfs-dag": "0.0.1"
   },
   "devDependencies": {
@@ -15,7 +15,7 @@
     "tape": "^4.0.0"
   },
   "scripts": {
-    "test": "standard"
+    "test": "standard && tape test/*"
   },
   "repository": {
     "type": "git",
