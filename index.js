@@ -18,10 +18,8 @@ module.exports = function (db, opts) {
     convertToMerkleDagNode(value, links, doneConversion)
 
     function doneConversion (err, dagNode) {
-      if (err) {
-        cb(err)
-        return
-      }
+      if (err) return cb(err)
+
       cb(null, dagNode.multihash)
     }
   }
@@ -29,10 +27,8 @@ module.exports = function (db, opts) {
   function keyToMerkleDagNode (key, cb) {
     // Look up the node by its key and convert it recursively.
     log.get(key, function (err, node) {
-      if (err) {
-        cb(err)
-        return
-      }
+      if (err) return cb(err)
+
       convertToMerkleDagNode(node.value, node.links, cb)
     })
   }
@@ -53,10 +49,7 @@ module.exports = function (db, opts) {
     async.map(links, keyToMerkleDagNode, onLinksReady)
 
     function onLinksReady (err, nodes) {
-      if (err) {
-        cb(err)
-        return
-      }
+      if (err) return cb(err)
 
       // Convert each Merkle DAG node to a Merkle DAG link.
       nodes = nodes.map(function (node) {
