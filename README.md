@@ -1,12 +1,16 @@
 # ipfs-hyperlog
 
+[![build status](http://img.shields.io/travis/noffle/ipfs-hyperlog.svg?style=flat)](http://travis-ci.org/noffle/ipfs-hyperlog)
+
 > [IPFS](https://ipfs.io)-compatible [Merkle DAG](https://github.com/jbenet/random-ideas/issues/20) that replicates based on scuttlebutt logs and causal linking
+
+## Installation
+
+ipfs-hyperlog depends on [Node.js](http://nodejs.org) and [npm](https://npmjs.com).
 
 ```
 npm install ipfs-hyperlog
 ```
-
-[![build status](http://img.shields.io/travis/noffle/ipfs-hyperlog.svg?style=flat)](http://travis-ci.org/noffle/ipfs-hyperlog)
 
 ## Background
 
@@ -40,7 +44,9 @@ advantage of:
 4. and [many more!](https://www.npmjs.com/search?q=hyperlog)
 
 
-## Create and link nodes
+## Usage
+
+### Create and link nodes
 
 ``` js
 var hyperlog = require('ipfs-hyperlog')
@@ -58,7 +64,7 @@ log.add(null, 'hello', function(err, node) {
 })
 ```
 
-## Replicate graph
+### Replicate graph
 
 To replicate this log with another one simply use `log.replicate()` and pipe it together with a replication stream from another log.
 
@@ -220,7 +226,7 @@ s1.on('end', function() {
 
 Options include:
 
-``` js
+``` json
 {
   mode: 'push' | 'pull' | 'sync', // set replication mode. defaults to sync
   live: true, // keep the replication stream open. defaults to false
