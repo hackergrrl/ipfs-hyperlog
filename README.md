@@ -226,7 +226,7 @@ s1.on('end', function() {
 
 Options include:
 
-``` json
+``` js
 {
   mode: 'push' | 'pull' | 'sync', // set replication mode. defaults to sync
   live: true, // keep the replication stream open. defaults to false
